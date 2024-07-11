@@ -130,7 +130,6 @@ class Locations {
 
 				if (counter === 0) {
 					// Start new range
-					pos += 1;
 					range = this.createRange();
 					range.startContainer = node;
 					range.startOffset = pos;
