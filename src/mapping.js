@@ -145,6 +145,7 @@ class Mapping {
 				var left, right, top, bottom;
 				var elPos;
 				var elRange;
+                var adj = node.nodeType === Node.TEXT_NODE ? parseFloat(getComputedStyle(node.parentElement).fontSize) || 0 : 0;
 
 
 				elPos = nodeBounds(node);
@@ -184,7 +185,7 @@ class Mapping {
 
 					if( top >= start && top <= end ) {
 						return node;
-					} else if (bottom > start) {
+					} else if (bottom > start + adj) {
 						return node;
 					} else {
 						$prev = node;
