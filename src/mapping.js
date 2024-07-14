@@ -145,7 +145,7 @@ class Mapping {
 				var left, right, top, bottom;
 				var elPos;
 				var elRange;
-                var adj = node.nodeType === Node.TEXT_NODE ? parseFloat(getComputedStyle(node.parentElement).fontSize) || 0 : 0;
+                var adj = node.nodeType === Node.TEXT_NODE ? parseFloat(getComputedStyle(node.parentElement).lineHeight) || 0 : 0;
 
 
 				elPos = nodeBounds(node);
