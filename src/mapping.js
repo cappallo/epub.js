@@ -414,7 +414,7 @@ class Mapping {
 	splitTextNodeIntoRanges(node, _splitter){
 		var ranges = [];
 		var textContent = node.textContent || "";
-		var text = textContent.trim();
+		var text = textContent;
 		var range;
 		var doc = node.ownerDocument;
 		var splitter = _splitter || " ";
@@ -429,9 +429,7 @@ class Mapping {
 
 		range = doc.createRange();
 		range.setStart(node, 0);
-		range.setEnd(node, pos);
-		ranges.push(range);
-		range = false;
+        pos = 0;
 
 		while ( pos != -1 ) {
 
