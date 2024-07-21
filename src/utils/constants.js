@@ -3,7 +3,31 @@ export const EPUBJS_VERSION = "0.3";
 // Dom events to listen for
 export const DOM_EVENTS = ["keydown", "keyup", "keypressed", "mouseup", "mousedown", "mousemove", "click", "touchend", "touchstart", "touchmove"];
 
-export const EVENTS = {
+// Helper function to create event objects with conditional debug logging
+const createEventWithConditionalDebug = (eventName) => ({
+  [eventName]: eventName,
+  toString: () => {
+    // const debugEvents = ['displayed', 'resize', 'resized', 'rendered', 'shown'];
+    // if (debugEvents.includes(eventName.toLowerCase())) {
+    //   console.debug(`EPUB.js Event Triggered: ${eventName}`);
+    // }
+    return eventName;
+  }
+});
+
+// Create events object with conditional debug logging
+const createEventsWithConditionalDebug = (eventsObj) => {
+  const result = {};
+  for (const [category, events] of Object.entries(eventsObj)) {
+    result[category] = {};
+    for (const [eventName, value] of Object.entries(events)) {
+      result[category][eventName] = createEventWithConditionalDebug(value);
+    }
+  }
+  return result;
+};
+
+export const EVENTS = createEventsWithConditionalDebug({
   BOOK : {
     OPEN_FAILED : "openFailed"
   },
@@ -60,3 +84,4 @@ export const EVENTS = {
     DETACH : "detach"
   }
 }
+);
