@@ -1,5 +1,6 @@
 import svg from './svg';
 import events from './events';
+import { useReaderStore } from '../../../src/store/readerStore';
 
 export class Pane {
   constructor(target, container = document.body) {
@@ -135,17 +136,53 @@ export class Highlight extends Mark {
       this.element.removeChild(this.element.firstChild);
     }
 
-    var docFrag = this.element.ownerDocument.createDocumentFragment();
-    var filtered = this.filteredRanges();
-    var offset = this.element.getBoundingClientRect();
-    var container = this.container.getBoundingClientRect();
+    const docFrag = this.element.ownerDocument.createDocumentFragment();
+    let filtered = this.filteredRanges().sort(
+      (a, b) => a.top - b.top || a.height - b.height || a.width - b.width || a.left - b.left
+    );
+    const offset = this.element.getBoundingClientRect();
+    const container = this.container.getBoundingClientRect();
+    const lineSpacing = useReaderStore.getState().lineSpacing;
+    const actualFontSize = useReaderStore.getState().fontSize;
 
-    for (var i = 0, len = filtered.length; i < len; i++) {
-      var r = filtered[i];
-      var el = svg.createElement('rect');
+    // Filter out unwanted rectangles
+    filtered = filtered.filter((rect, index, array) => {
+      if (index === 0) return true;
+      const prevRect = array[index - 1];
+
+      // Discard B if B.left < A.left and B.right > A.right
+      if (rect.left < prevRect.left - 1 && rect.left + rect.width > prevRect.left + prevRect.width + 1) {
+        console.log('discarded 1 rect', rect, 'prevRect', prevRect);
+        return false;
+      }
+
+      // Discard B if left and right are equal, but B's top starts before A's bottom
+      if (
+        (rect.left === prevRect.left || rect.left + rect.width === prevRect.left + prevRect.width) &&
+        rect.height > 1.5 * prevRect.height
+      ) {
+        console.log('discarded 2 rect', rect, 'prevRect', prevRect);
+        return false;
+      }
+
+      return true;
+    });
+
+    for (let i = 0, len = filtered.length; i < len; i++) {
+      const r = filtered[i];
+      const el = svg.createElement('rect');
+
+      let newHeight = r.height;
+      let newY = r.top - offset.top + container.top;
+
+      if (lineSpacing && actualFontSize) {
+        newHeight = actualFontSize * lineSpacing;
+        newY -= (newHeight - r.height) / 2;
+      }
+
       el.setAttribute('x', r.left - offset.left + container.left);
-      el.setAttribute('y', r.top - offset.top + container.top);
-      el.setAttribute('height', r.height);
+      el.setAttribute('y', newY);
+      el.setAttribute('height', newHeight);
       el.setAttribute('width', r.width);
 
       docFrag.appendChild(el);
