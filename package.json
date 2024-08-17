@@ -62,7 +62,10 @@
     "jszip": "^3.7.1",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
-    "marks-pane": "^1.0.9",
+    "marks-pane": "file:marks",
     "path-webpack": "0.0.3"
+  },
+  "resolutions": {
+    "marks-pane": "file:marks"
   }
 }

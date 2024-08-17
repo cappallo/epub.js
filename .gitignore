@@ -9,3 +9,15 @@ lib
 dist
 documentation/html
 types/*.js
+marks/.babelrc
+marks/.jshintrc
+marks/.npmignore
+marks/.travis.yml
+marks/index.html
+marks/karma.conf.js
+marks/Makefile
+marks/package-lock.json
+marks/README.md
+marks/test/events_test.js
+marks/test/svg_test.js
+marks/test/vendor/syn.js
