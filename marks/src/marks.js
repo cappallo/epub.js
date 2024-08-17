@@ -142,7 +142,7 @@ export class Highlight extends Mark {
     );
     const offset = this.element.getBoundingClientRect();
     const container = this.container.getBoundingClientRect();
-    const lineSpacing = useReaderStore.getState().lineSpacing;
+    var lineSpacing = useReaderStore.getState().lineSpacing;
     const actualFontSize = useReaderStore.getState().fontSize;
 
     // Filter out unwanted rectangles
@@ -167,6 +167,15 @@ export class Highlight extends Mark {
 
       return true;
     });
+
+    // Calculate line spacing if actualFontSize is available but lineSpacing is not set
+    if (actualFontSize && !lineSpacing && filtered.length > 1) {
+      const uniqueTops = [...new Set(filtered.map((r) => r.top))].sort((a, b) => a - b);
+      if (uniqueTops.length > 1) {
+        const topDiff = uniqueTops[1] - uniqueTops[0];
+        lineSpacing = topDiff / actualFontSize;
+      }
+    }
 
     for (let i = 0, len = filtered.length; i < len; i++) {
       const r = filtered[i];
