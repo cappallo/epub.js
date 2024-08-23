@@ -23,7 +23,7 @@ const DOCUMENT_NODE = 9;
 	@param {string} [ignoreClass] class to ignore when parsing DOM
 */
 class EpubCFI {
-	constructor(cfiFrom, base, ignoreClass){
+	constructor(cfiFrom, base, ignoreClass='epubjs-ignore'){
 		var type;
 
 		this.str = "";
@@ -846,6 +846,9 @@ class EpubCFI {
 			step = steps[i];
 
 			if(step.type === "element") {
+                if (ignoreClass && container.children && container.children.length === 1 && container.children[0].classList.contains(ignoreClass)) {
+                    container = container.firstElementChild;
+                }
 				//better to get a container using id as some times step.index may not be correct
 				//For ex.https://github.com/futurepress/epub.js/issues/561
 				if(step.id) {

@@ -608,7 +608,7 @@ class IframeView {
 			return;
 		}
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange);
+		let range = this.contents.range(cfiRange, this.settings.ignoreClass);
 
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
@@ -641,7 +641,7 @@ class IframeView {
 			return;
 		}
 		const attributes = Object.assign({"stroke": "black", "stroke-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange);
+		let range = this.contents.range(cfiRange, this.settings.ignoreClass);
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
@@ -678,7 +678,7 @@ class IframeView {
 			return item;
 		}
 
-		let range = this.contents.range(cfiRange);
+		let range = this.contents.range(cfiRange, this.settings.ignoreClass);
 		if (!range) {
 			return;
 		}
