@@ -663,17 +663,29 @@ class EpubCFI {
 
 	}
 
+	/**
+	 * Patches the offset for ignored elements
+	 * @param {Node} anchor - The anchor node
+	 * @param {number} offset - The initial offset
+	 * @param {string} ignoreClass - The class to ignore
+	 * @returns {number} - The patched offset
+	 */
 	patchOffset(anchor, offset, ignoreClass) {
-		if (anchor.nodeType != TEXT_NODE) {
-			throw new Error("Anchor must be a text node");
+		let curr = anchor;
+		let totalOffset = offset;
+
+		// Traverse to the first text node if the anchor is an element
+		while (curr.nodeType === ELEMENT_NODE && curr.firstChild) {
+			curr = curr.firstChild;
 		}
 
-		var curr = anchor;
-		var totalOffset = offset;
+		if (curr.nodeType !== TEXT_NODE) {
+			throw new Error("No text node found within the anchor element");
+		}
 
-		// If the parent is a ignored node, get offset from it's start
-		if (anchor.parentNode.classList.contains(ignoreClass)) {
-			curr = anchor.parentNode;
+		// If the parent is an ignored node, get offset from its start
+		if (curr.parentNode.classList.contains(ignoreClass)) {
+			curr = curr.parentNode;
 		}
 
 		while (curr.previousSibling) {
@@ -682,7 +694,7 @@ class EpubCFI {
 				if(curr.previousSibling.classList.contains(ignoreClass)){
 					totalOffset += curr.previousSibling.textContent.length;
 				} else {
-					break; // Normal node, dont join
+					break; // Normal node, don't join
 				}
 			} else {
 				// If the previous sibling is a text node, join the nodes
