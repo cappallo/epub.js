@@ -48,6 +48,8 @@ export default class EpubCFI {
 
     toString(): string;
 
+    patchOffset(anchor: Node, offset: number, ignoreClass?: string): number;
+
     private filteredStep(node: Node, ignoreClass?: string): any;
 
     private findNode(steps: Array<EpubCFIStep>, _doc?: Document, ignoreClass?: string): Node;
@@ -75,8 +77,6 @@ export default class EpubCFI {
     private parseStep(stepStr: string): object;
 
     private parseTerminal(termialStr: string): object;
-
-    private patchOffset(anchor: Node, offset: number, ignoreClass?: string): number;
 
     private pathTo(node: Node, offset: number, ignoreClass?: string): EpubCFISegment;
 
