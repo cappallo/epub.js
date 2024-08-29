@@ -8,6 +8,8 @@ export default class Annotations {
 
   remove(cfiRange: string, type: string): void;
 
+  removeByData(fieldName: string, fieldValue: any): void;
+
   highlight(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
 
 	underline(cfiRange: string, data?: object, cb?: Function, className?: string, styles?: object): void;
@@ -16,13 +18,13 @@ export default class Annotations {
 
   each(): Array<Annotation>
 
+  clear(view: View): void;
+
   private _removeFromAnnotationBySectionIndex(sectionIndex: number, hash: string): void;
 
   private _annotationsAt(index: number): void;
 
   private inject(view: View): void;
-
-  private clear(view: View): void;
 }
 
 declare class Annotation {

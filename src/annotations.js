@@ -92,6 +92,27 @@ class Annotations {
 	}
 
 	/**
+	 * Remove annotations by matching data field
+	 * @param {string} fieldName Name of the data field to match
+	 * @param {any} fieldValue Value to match in the specified field
+	 */
+	removeByData(fieldName, fieldValue) {
+		Object.keys(this._annotations).forEach(hash => {
+			const annotation = this._annotations[hash];
+			if (annotation.data && annotation.data[fieldName] === fieldValue) {
+				let views = this.rendition.views();
+				views.forEach(view => {
+					this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
+					if (annotation.sectionIndex === view.index) {
+						annotation.detach(view);
+					}
+				});
+				delete this._annotations[hash];
+			}
+		});
+	}
+
+	/**
 	 * Remove an annotations by Section Index
 	 * @private
 	 */
