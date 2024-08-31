@@ -152,7 +152,7 @@ export class Highlight extends Mark {
 
       // Discard B if B.left < A.left and B.right > A.right
       if (rect.left < prevRect.left - 1 && rect.left + rect.width > prevRect.left + prevRect.width + 1) {
-        console.log('discarded 1 rect', rect, 'prevRect', prevRect);
+        console.debug('discarded 1 rect', rect, 'prevRect', prevRect);
         return false;
       }
 
@@ -161,7 +161,7 @@ export class Highlight extends Mark {
         (rect.left === prevRect.left || rect.left + rect.width === prevRect.left + prevRect.width) &&
         rect.height > 1.5 * prevRect.height
       ) {
-        console.log('discarded 2 rect', rect, 'prevRect', prevRect);
+        console.debug('discarded 2 rect', rect, 'prevRect', prevRect);
         return false;
       }
 
