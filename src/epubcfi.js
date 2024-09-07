@@ -863,13 +863,16 @@ class EpubCFI {
                 }
 				//better to get a container using id as some times step.index may not be correct
 				//For ex.https://github.com/futurepress/epub.js/issues/561
-				if(step.id) {
-					container = doc.getElementById(step.id);
-				}
-				else {
+				// if(step.id) {
+					// container = doc.getElementById(step.id);
+				// }
+				// else {
 					children = container.children || findChildren(container);
 					container = children[step.index];
-				}
+                    if (!container && step.id) {
+                        container = doc.getElementById(step.id);
+                    }
+				// }
 			} else if(step.type === "text") {
 				container = this.textNodes(container, ignoreClass)[step.index];
 			}
