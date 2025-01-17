@@ -134,6 +134,25 @@ function adjustRectangles(rects, threshold) {
   return adjusted;
 }
 
+/**
+ * Scales rectangles vertically by growing them from their center point
+ * @param {Array} rects - Array of rectangle objects with top, bottom, height properties
+ * @param {number} scaleFactor - Factor to scale height by (e.g., 1.2 for 20% increase)
+ * @returns {Array} - Array of scaled rectangle objects
+ */
+function scaleRectanglesVertically(rects, scaleFactor) {
+  return rects.map((rect) => {
+    const additionalHeight = rect.height * scaleFactor - rect.height;
+    const halfAdditionalHeight = additionalHeight / 2;
+
+    return {
+      ...rect,
+      top: rect.top - halfAdditionalHeight,
+      height: rect.height * scaleFactor,
+    };
+  });
+}
+
 export class Highlight extends Mark {
   constructor(range, className, data, attributes) {
     super();
@@ -250,6 +269,8 @@ export class Highlight extends Mark {
 
     // Adjust rectangles to align tops and bottoms
     const threshold = actualFontSize || 12; // Example threshold based on font size
+
+    // filtered = scaleRectanglesVertically(filtered, 1.2); // Example 20% increase
     filtered = adjustRectangles(filtered, threshold);
 
     // Final rect rendering
