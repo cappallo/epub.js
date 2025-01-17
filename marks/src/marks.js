@@ -138,34 +138,69 @@ export class Highlight extends Mark {
 
     const docFrag = this.element.ownerDocument.createDocumentFragment();
     let filtered = this.filteredRanges().sort(
-      (a, b) => a.top - b.top || a.height - b.height || a.width - b.width || a.left - b.left
+      (a, b) => a.top - b.top || a.height - b.height || a.left - b.left || a.width - b.width
     );
     const offset = this.element.getBoundingClientRect();
     const container = this.container.getBoundingClientRect();
     var lineSpacing = useReaderStore.getState().lineSpacing;
     const actualFontSize = useReaderStore.getState().fontSize;
 
+    // Merge adjacent rectangles on the same line
+    let merged = true;
+    while (merged) {
+      merged = false;
+      for (let i = 0; i < filtered.length - 1; i++) {
+        const rect1 = filtered[i];
+        const rect2 = filtered[i + 1];
+
+        // Check if rectangles are on same line and adjacent
+        const sameTop = Math.abs(rect1.top - rect2.top) < 0.1;
+        const sameHeight = Math.abs(rect1.height - rect2.height) < 0.1;
+        const adjacent = Math.abs(rect1.left + rect1.width - rect2.left) < 0.1;
+
+        if (sameTop && sameHeight && adjacent) {
+          // Merge the rectangles
+          filtered[i] = {
+            top: rect1.top,
+            left: rect1.left,
+            height: rect1.height,
+            width: rect1.width + rect2.width,
+          };
+          // Remove the second rectangle
+          filtered.splice(i + 1, 1);
+          merged = true;
+          break;
+        }
+      }
+    }
+
     // Filter out unwanted rectangles
     filtered = filtered.filter((rect, index, array) => {
-      if (index === 0) return true;
-      const prevRect = array[index - 1];
+      // Keep track if this rectangle should be kept
+      let shouldKeep = true;
 
-      // Discard B if B.left < A.left and B.right > A.right
-      if (rect.left < prevRect.left - 1 && rect.left + rect.width > prevRect.left + prevRect.width + 1) {
-        console.debug('discarded 1 rect', rect, 'prevRect', prevRect);
-        return false;
-      }
+      // Check if this rectangle's center point is contained within any other rectangle
+      const rectCenterX = rect.left + rect.width / 2;
+      const rectCenterY = rect.top + rect.height / 2;
 
-      // Discard B if left and right are equal, but B's top starts before A's bottom
-      if (
-        (rect.left === prevRect.left || rect.left + rect.width === prevRect.left + prevRect.width) &&
-        rect.height > 1.5 * prevRect.height
-      ) {
-        console.debug('discarded 2 rect', rect, 'prevRect', prevRect);
-        return false;
-      }
+      array.forEach((otherRect, otherIndex) => {
+        if (index === otherIndex) return; // Skip comparing with self
 
-      return true;
+        // Check if the center point is inside the other rectangle
+        if (
+          rectCenterX >= otherRect.left &&
+          rectCenterX <= otherRect.left + otherRect.width &&
+          rectCenterY >= otherRect.top &&
+          rectCenterY <= otherRect.top + otherRect.height
+        ) {
+          // If this rectangle is larger than the other one, mark it for removal
+          if (rect.width * rect.height > otherRect.width * otherRect.height) {
+            shouldKeep = false;
+          }
+        }
+      });
+
+      return shouldKeep;
     });
 
     // Calculate line spacing if actualFontSize is available but lineSpacing is not set
