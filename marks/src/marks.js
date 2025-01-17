@@ -179,19 +179,18 @@ export class Highlight extends Mark {
       // Keep track if this rectangle should be kept
       let shouldKeep = true;
 
-      // Check if this rectangle's center point is contained within any other rectangle
-      const rectCenterX = rect.left + rect.width / 2;
-      const rectCenterY = rect.top + rect.height / 2;
-
       array.forEach((otherRect, otherIndex) => {
         if (index === otherIndex) return; // Skip comparing with self
 
-        // Check if the center point is inside the other rectangle
+        // Check if the other rectangle's center point is inside this rectangle
+        const otherCenterX = otherRect.left + otherRect.width / 2;
+        const otherCenterY = otherRect.top + otherRect.height / 2;
+
         if (
-          rectCenterX >= otherRect.left &&
-          rectCenterX <= otherRect.left + otherRect.width &&
-          rectCenterY >= otherRect.top &&
-          rectCenterY <= otherRect.top + otherRect.height
+          otherCenterX >= rect.left &&
+          otherCenterX <= rect.left + rect.width &&
+          otherCenterY >= rect.top &&
+          otherCenterY <= rect.top + rect.height
         ) {
           // If this rectangle is larger than the other one, mark it for removal
           if (rect.width * rect.height > otherRect.width * otherRect.height) {
