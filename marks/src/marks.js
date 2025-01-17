@@ -101,6 +101,39 @@ export class Mark {
   }
 }
 
+/**
+ * Adjusts the tops and bottoms of rectangles to align them, covering slight gaps or removing slight overlaps.
+ * Ensures that large gaps (e.g., the height of a rectangle or more) are not adjusted to prevent highlighting blank lines.
+ *
+ * @param {Array} rects - Array of rectangle objects with top, bottom, left, right, height, and width properties.
+ * @param {number} threshold - Maximum gap or overlap allowed for adjustment.
+ * @returns {Array} - Adjusted array of rectangle objects.
+ */
+function adjustRectangles(rects, threshold) {
+  const adjusted = [];
+  for (let i = 0; i < rects.length; i++) {
+    if (i === 0) {
+      adjusted.push({ ...rects[i] });
+      continue;
+    }
+    const prev = adjusted[adjusted.length - 1];
+    const current = rects[i];
+    const gap = current.top - prev.top - prev.height;
+    const overlap = prev.top + prev.height - current.top;
+
+    if (gap >= 0 && gap < threshold) {
+      // Cover the slight gap by extending the previous rectangle
+      adjusted[adjusted.length - 1].height += gap;
+    } else if (overlap > 0 && overlap < threshold) {
+      // Remove the slight overlap by adjusting the previous rectangle's height
+      adjusted[adjusted.length - 1].height -= overlap;
+    }
+
+    adjusted.push({ ...current });
+  }
+  return adjusted;
+}
+
 export class Highlight extends Mark {
   constructor(range, className, data, attributes) {
     super();
@@ -130,6 +163,10 @@ export class Highlight extends Mark {
     }
   }
 
+  /**
+   * Renders the highlight by creating and appending SVG rectangles.
+   * Adjusts rectangle positions to align tops and bottoms, avoiding large gaps.
+   */
   render() {
     // Empty element
     while (this.element.firstChild) {
@@ -142,7 +179,7 @@ export class Highlight extends Mark {
     );
     const offset = this.element.getBoundingClientRect();
     const container = this.container.getBoundingClientRect();
-    var lineSpacing = useReaderStore.getState().lineSpacing;
+    const lineSpacing = useReaderStore.getState().lineSpacing;
     const actualFontSize = useReaderStore.getState().fontSize;
 
     // Merge adjacent rectangles on the same line
@@ -203,25 +240,25 @@ export class Highlight extends Mark {
     });
 
     // Calculate line spacing if actualFontSize is available but lineSpacing is not set
-    if (actualFontSize && !lineSpacing && filtered.length > 1) {
-      const uniqueTops = [...new Set(filtered.map((r) => r.top))].sort((a, b) => a - b);
-      if (uniqueTops.length > 1) {
-        const topDiff = uniqueTops[1] - uniqueTops[0];
-        lineSpacing = topDiff / actualFontSize;
-      }
-    }
+    // if (actualFontSize && !lineSpacing && filtered.length > 1) {
+    //   const uniqueTops = [...new Set(filtered.map((r) => r.top))].sort((a, b) => a - b);
+    //   if (uniqueTops.length > 1) {
+    //     const topDiff = uniqueTops[1] - uniqueTops[0];
+    //     lineSpacing = topDiff / actualFontSize;
+    //   }
+    // }
 
+    // Adjust rectangles to align tops and bottoms
+    const threshold = actualFontSize || 12; // Example threshold based on font size
+    filtered = adjustRectangles(filtered, threshold);
+
+    // Final rect rendering
     for (let i = 0, len = filtered.length; i < len; i++) {
       const r = filtered[i];
       const el = svg.createElement('rect');
 
       let newHeight = r.height;
       let newY = r.top - offset.top + container.top;
-
-      if (lineSpacing && actualFontSize) {
-        newHeight = actualFontSize * lineSpacing;
-        newY -= (newHeight - r.height) / 2;
-      }
 
       el.setAttribute('x', r.left - offset.left + container.left);
       el.setAttribute('y', newY);
