@@ -1,6 +1,20 @@
 import svg from './svg';
 import events from './events';
-import { useReaderStore } from '../../../src/store/readerStore';
+
+// Try to import the readerStore, but don't fail if it's not available
+let useReaderStore;
+try {
+  // Dynamic import to avoid build errors
+  useReaderStore = require('../../../src/store/readerStore').useReaderStore;
+} catch (e) {
+  // Create a mock readerStore with default values
+  useReaderStore = {
+    getState: () => ({
+      lineSpacing: 1.5,
+      fontSize: 16,
+    }),
+  };
+}
 
 export class Pane {
   constructor(target, container = document.body) {
