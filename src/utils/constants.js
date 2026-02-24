@@ -74,7 +74,8 @@ export const EVENTS = createEventsWithConditionalDebug({
     RELOCATED : "relocated",
     MARK_CLICKED : "markClicked",
     SELECTED : "selected",
-    LAYOUT: "layout"
+    LAYOUT: "layout",
+    LINK_CLICKED : "linkClicked"
   },
   LAYOUT : {
     UPDATED : "updated"

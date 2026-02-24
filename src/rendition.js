@@ -1009,7 +1009,17 @@ class Rendition {
 		if (contents) {
 			contents.on(EVENTS.CONTENTS.LINK_CLICKED, (href) => {
 				let relative = this.book.path.relative(href);
-				this.display(relative);
+				/**
+				 * Emit that a link was clicked so the app can handle it
+				 * (e.g. show a footnote popover instead of navigating).
+				 * If no listener calls event.preventDefault(), fall back
+				 * to the default display behaviour.
+				 */
+				const event = { href, relative, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+				this.emit(EVENTS.RENDITION.LINK_CLICKED, event);
+				if (!event.defaultPrevented) {
+					this.display(relative);
+				}
 			});
 		}
 	}
