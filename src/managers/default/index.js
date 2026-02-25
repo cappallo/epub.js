@@ -260,8 +260,11 @@ class DefaultViewManager {
 		var displaying = new defer();
 		var displayed = displaying.promise;
 
+		console.debug('[manager.display] section:', section.href, 'target:', target);
+
 		// Check if moving to target is needed
 		if (target === section.href || isNumber(target)) {
+			console.debug('[manager.display] target matches section.href or is number, clearing target');
 			target = undefined;
 		}
 
@@ -270,6 +273,7 @@ class DefaultViewManager {
 
 		// View is already shown, just move to correct location in view
 		if(visible && section && this.layout.name !== "pre-paginated") {
+			console.debug('[manager.display] section already visible');
 			let offset = visible.offset();
 
 			if (this.settings.direction === "ltr") {
@@ -282,6 +286,7 @@ class DefaultViewManager {
 			if(target) {
 				let offset = visible.locationOf(target);
 				let width = visible.width();
+				console.debug('[manager.display] visible moveTo:', { target, offset, width });
 				this.moveTo(offset, width);
 			}
 
@@ -304,6 +309,7 @@ class DefaultViewManager {
 				if(target) {
 					let offset = view.locationOf(target);
 					let width = view.width();
+					console.debug('[manager.display] new view moveTo:', { target, offset, width, delta: this.layout.delta });
 					this.moveTo(offset, width);
 				}
 

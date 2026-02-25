@@ -665,6 +665,7 @@ class Contents {
 
 			let id = target.substring(target.indexOf("#")+1);
 			let el = this.document.getElementById(id);
+			console.debug('[locationOf] fragment lookup:', { target, id, found: !!el });
 			if(el) {
 				if (isWebkit) {
 					// Webkit reports incorrect bounding rects in Columns
@@ -674,6 +675,7 @@ class Contents {
 				} else {
 					position = el.getBoundingClientRect();
 				}
+				console.debug('[locationOf] element position:', { left: position.left, top: position.top, width: position.width, height: position.height });
 			}
 		}
 
@@ -682,6 +684,7 @@ class Contents {
 			targetPos.top = position.top;
 		}
 
+		console.debug('[locationOf] returning:', targetPos);
 		return targetPos;
 	}
 
