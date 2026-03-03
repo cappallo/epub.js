@@ -5,6 +5,48 @@ import Contents from "../../contents";
 import { EVENTS } from "../../utils/constants";
 import { Pane, Highlight, Underline } from "marks-pane";
 
+const isCustomSelectionPreviewData = (data) => {
+	return !!(data && typeof data.id === "string" && data.id.indexOf("__custom_selection_preview_") === 0);
+};
+
+const previewDebug = (_event, _details) => {};
+
+const countRangeRects = (range) => {
+	if (!range || typeof range.getClientRects !== "function") {
+		return 0;
+	}
+	try {
+		return range.getClientRects().length || 0;
+	} catch (_error) {
+		return 0;
+	}
+};
+
+const resolveHighlightRange = (contents, cfiRange, ignoreClass) => {
+	let range;
+	let resolvedWith = ignoreClass || "";
+	try {
+		range = contents.range(cfiRange, ignoreClass);
+	} catch (_error) {
+		range = undefined;
+	}
+	let rectCount = countRangeRects(range);
+	const shouldRetryWithoutIgnore =
+		!!ignoreClass && (!range || (!range.collapsed && rectCount <= 0));
+	if (shouldRetryWithoutIgnore) {
+		try {
+			const fallbackRange = contents.range(cfiRange, "");
+			const fallbackRectCount = countRangeRects(fallbackRange);
+			if (fallbackRange && (fallbackRange.collapsed || fallbackRectCount > 0)) {
+				range = fallbackRange;
+				rectCount = fallbackRectCount;
+				resolvedWith = "";
+			}
+		} catch (_error) {}
+	}
+	return { range, rectCount, resolvedWith };
+};
+
 class IframeView {
 	constructor(section, options) {
 		this.settings = extend({
@@ -605,10 +647,51 @@ class IframeView {
 
 	highlight(cfiRange, data={}, cb, className = "epubjs-hl", styles = {}) {
 		if (!this.contents) {
+			if (isCustomSelectionPreviewData(data)) {
+				previewDebug("highlight:no-contents", {
+					cfiRange,
+					viewIndex: this.index,
+					id: data && data.id
+				});
+			}
 			return;
 		}
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
-		let range = this.contents.range(cfiRange, this.settings.ignoreClass);
+		const { range, rectCount: resolvedRectCount, resolvedWith } = resolveHighlightRange(
+			this.contents,
+			cfiRange,
+			this.settings.ignoreClass
+		);
+		const isPreview = isCustomSelectionPreviewData(data);
+		if (isPreview) {
+			let rangeTextLen = 0;
+			let rangeRectCount = resolvedRectCount;
+			try {
+				rangeTextLen = range ? range.toString().length : 0;
+			} catch (_error) {}
+			previewDebug("highlight:start", {
+				id: data && data.id,
+				cfiRange,
+				viewIndex: this.index,
+				hasPane: !!this.pane,
+				hasRange: !!range,
+				resolvedWithIgnoreClass: resolvedWith || "(none)",
+				rangeTextLen,
+				rangeRectCount
+			});
+		}
+		if (!range || (!range.collapsed && resolvedRectCount <= 0)) {
+			if (isPreview) {
+				previewDebug("highlight:no-usable-range", {
+					id: data && data.id,
+					cfiRange,
+					viewIndex: this.index,
+					resolvedWithIgnoreClass: resolvedWith || "(none)",
+					rangeRectCount: resolvedRectCount
+				});
+			}
+			return;
+		}
 
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
@@ -622,6 +705,18 @@ class IframeView {
 
 		let m = new Highlight(range, className, data, attributes);
 		let h = this.pane.addMark(m);
+		if (isPreview) {
+			let markRectCount = 0;
+			try {
+				markRectCount = h && h.getClientRects ? h.getClientRects().length : 0;
+			} catch (_error) {}
+			previewDebug("highlight:added", {
+				id: data && data.id,
+				cfiRange,
+				viewIndex: this.index,
+				markRectCount
+			});
+		}
 
 		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
 
@@ -758,6 +853,14 @@ class IframeView {
 		let item;
 		if (cfiRange in this.highlights) {
 			item = this.highlights[cfiRange];
+			const isPreview = isCustomSelectionPreviewData(item && item.element && item.element.dataset);
+			if (isPreview) {
+				previewDebug("unhighlight:start", {
+					cfiRange,
+					viewIndex: this.index,
+					id: item && item.element && item.element.dataset && item.element.dataset.id
+				});
+			}
 
 			this.pane.removeMark(item.mark);
 			item.listeners.forEach((l) => {
@@ -767,6 +870,12 @@ class IframeView {
 				};
 			});
 			delete this.highlights[cfiRange];
+			if (isPreview) {
+				previewDebug("unhighlight:end", {
+					cfiRange,
+					viewIndex: this.index
+				});
+			}
 		}
 	}
 

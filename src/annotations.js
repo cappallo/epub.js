@@ -2,8 +2,14 @@ import EventEmitter from "event-emitter";
 import EpubCFI from "./epubcfi";
 import { EVENTS } from "./utils/constants";
 
+const isCustomSelectionPreviewData = (data) => {
+	return !!(data && typeof data.id === "string" && data.id.indexOf("__custom_selection_preview_") === 0);
+};
+
+const previewDebug = (_event, _details) => {};
+
 /**
-	* Handles managing adding & removing Annotations
+		* Handles managing adding & removing Annotations
 	* @param {Rendition} rendition
 	* @class
 	*/
@@ -32,10 +38,21 @@ class Annotations {
 	 * @returns {Annotation} annotation
 	 */
 	add (type, cfiRange, data, cb, className, styles) {
+		const isPreview = isCustomSelectionPreviewData(data);
 		let annotationKey = data && (data.__annotationKey || data.annotationKey);
 		let hash = encodeURI(annotationKey || (cfiRange + type));
 		let cfi = new EpubCFI(cfiRange);
 		let sectionIndex = cfi.spinePos;
+		if (isPreview) {
+			previewDebug("add:start", {
+				type,
+				cfiRange,
+				id: data && data.id,
+				hash,
+				sectionIndex,
+				existingHash: !!this._annotations[hash]
+			});
+		}
 		let annotation = new Annotation({
 			type,
 			cfiRange,
@@ -55,9 +72,24 @@ class Annotations {
 		}
 
 		let views = this.rendition.views();
+		if (isPreview) {
+			previewDebug("add:stored", {
+				hash,
+				totalAnnotations: Object.keys(this._annotations).length,
+				sectionAnnotationCount: (this._annotationsBySectionIndex[sectionIndex] || []).length,
+				viewCount: views.length
+			});
+		}
 
 		views.forEach( (view) => {
 			if (annotation.sectionIndex === view.index) {
+				if (isPreview) {
+					previewDebug("add:attach-to-view", {
+						hash,
+						viewIndex: view.index,
+						viewSectionIndex: annotation.sectionIndex
+					});
+				}
 				annotation.attach(view);
 			}
 		});
@@ -98,19 +130,44 @@ class Annotations {
 	 * @param {any} fieldValue Value to match in the specified field
 	 */
 	removeByData(fieldName, fieldValue) {
+		const isPreviewRemoval = fieldName === "id" && typeof fieldValue === "string" &&
+			fieldValue.indexOf("__custom_selection_preview_") === 0;
+		let removedCount = 0;
+		if (isPreviewRemoval) {
+			previewDebug("removeByData:start", {
+				fieldName,
+				fieldValue,
+				totalAnnotations: Object.keys(this._annotations).length
+			});
+		}
 		Object.keys(this._annotations).forEach(hash => {
 			const annotation = this._annotations[hash];
 			if (annotation.data && annotation.data[fieldName] === fieldValue) {
+				removedCount += 1;
 				let views = this.rendition.views();
 				views.forEach(view => {
 					this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
 					if (annotation.sectionIndex === view.index) {
+						if (isPreviewRemoval) {
+							previewDebug("removeByData:detach", {
+								hash,
+								viewIndex: view.index,
+								sectionIndex: annotation.sectionIndex
+							});
+						}
 						annotation.detach(view);
 					}
 				});
 				delete this._annotations[hash];
 			}
 		});
+		if (isPreviewRemoval) {
+			previewDebug("removeByData:end", {
+				fieldValue,
+				removedCount,
+				totalAnnotations: Object.keys(this._annotations).length
+			});
+		}
 	}
 
 	/**
@@ -180,6 +237,18 @@ class Annotations {
 		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			let annotations = this._annotationsBySectionIndex[sectionIndex];
+			const previewCount = annotations.filter((hash) => {
+				const annotation = this._annotations[hash];
+				return annotation && isCustomSelectionPreviewData(annotation.data);
+			}).length;
+			if (previewCount > 0) {
+				previewDebug("inject:view", {
+					viewIndex: view.index,
+					sectionIndex,
+					totalForSection: annotations.length,
+					previewCount
+				});
+			}
 			annotations.forEach((hash) => {
 				let annotation = this._annotations[hash];
 				annotation.attach(view);
@@ -196,6 +265,18 @@ class Annotations {
 		let sectionIndex = view.index;
 		if (sectionIndex in this._annotationsBySectionIndex) {
 			let annotations = this._annotationsBySectionIndex[sectionIndex];
+			const previewCount = annotations.filter((hash) => {
+				const annotation = this._annotations[hash];
+				return annotation && isCustomSelectionPreviewData(annotation.data);
+			}).length;
+			if (previewCount > 0) {
+				previewDebug("clear:view", {
+					viewIndex: view.index,
+					sectionIndex,
+					totalForSection: annotations.length,
+					previewCount
+				});
+			}
 			annotations.forEach((hash) => {
 				let annotation = this._annotations[hash];
 				annotation.detach(view);
@@ -270,6 +351,15 @@ class Annotation {
 	attach (view) {
 		let {cfiRange, data, type, mark, cb, className, styles} = this;
 		let result;
+		const isPreview = isCustomSelectionPreviewData(data);
+		if (isPreview) {
+			previewDebug("annotation.attach:start", {
+				type,
+				id: data && data.id,
+				cfiRange,
+				viewIndex: view && view.index
+			});
+		}
 
 		if (type === "highlight") {
 			result = view.highlight(cfiRange, data, cb, className, styles);
@@ -280,6 +370,15 @@ class Annotation {
 		}
 
 		this.mark = result;
+		if (isPreview) {
+			previewDebug("annotation.attach:end", {
+				type,
+				id: data && data.id,
+				cfiRange,
+				viewIndex: view && view.index,
+				hasMark: !!result
+			});
+		}
 		this.emit(EVENTS.ANNOTATION.ATTACH, result);
 		return result;
 	}
@@ -291,6 +390,15 @@ class Annotation {
 	detach (view) {
 		let {cfiRange, type} = this;
 		let result;
+		const isPreview = isCustomSelectionPreviewData(this.data);
+		if (isPreview) {
+			previewDebug("annotation.detach:start", {
+				type,
+				id: this.data && this.data.id,
+				cfiRange,
+				viewIndex: view && view.index
+			});
+		}
 
 		if (view) {
 			if (type === "highlight") {
@@ -303,6 +411,15 @@ class Annotation {
 		}
 
 		this.mark = undefined;
+		if (isPreview) {
+			previewDebug("annotation.detach:end", {
+				type,
+				id: this.data && this.data.id,
+				cfiRange,
+				viewIndex: view && view.index,
+				resultType: typeof result
+			});
+		}
 		this.emit(EVENTS.ANNOTATION.DETACH, result);
 		return result;
 	}

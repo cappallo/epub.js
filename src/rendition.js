@@ -937,7 +937,21 @@ class Rendition {
 
 		// Should only every return 1 item
 		if (found.length) {
-			return found[0].contents.range(_cfi, ignoreClass);
+			let range = found[0].contents.range(_cfi, ignoreClass);
+			let rectCount = 0;
+			try {
+				rectCount = range && range.getClientRects ? range.getClientRects().length : 0;
+			} catch (_error) {}
+			if (ignoreClass && (!range || (!range.collapsed && rectCount <= 0))) {
+				try {
+					const fallbackRange = found[0].contents.range(_cfi, "");
+					const fallbackRectCount = fallbackRange && fallbackRange.getClientRects ? fallbackRange.getClientRects().length : 0;
+					if (fallbackRange && (fallbackRange.collapsed || fallbackRectCount > 0)) {
+						return fallbackRange;
+					}
+				} catch (_error) {}
+			}
+			return range;
 		}
 	}
 
