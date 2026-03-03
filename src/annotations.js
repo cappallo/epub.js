@@ -32,7 +32,8 @@ class Annotations {
 	 * @returns {Annotation} annotation
 	 */
 	add (type, cfiRange, data, cb, className, styles) {
-		let hash = encodeURI(cfiRange + type);
+		let annotationKey = data && (data.__annotationKey || data.annotationKey);
+		let hash = encodeURI(annotationKey || (cfiRange + type));
 		let cfi = new EpubCFI(cfiRange);
 		let sectionIndex = cfi.spinePos;
 		let annotation = new Annotation({
