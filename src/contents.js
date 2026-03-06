@@ -1055,6 +1055,9 @@ class Contents {
 		let COLUMN_GAP = prefixed("column-gap");
 		let COLUMN_WIDTH = prefixed("column-width");
 		let COLUMN_FILL = prefixed("column-fill");
+		// Keep paginated vertical padding inside epub.js's measured layout so
+		// chapter turns do not reflow into extra blank columns after render.
+		let PAGINATED_VERTICAL_PADDING = 48;
 
 		let writingMode = this.writingMode();
 		let axis = (writingMode.indexOf("vertical") === 0) ? "vertical" : "horizontal";
@@ -1079,14 +1082,14 @@ class Contents {
 		this.css("margin", "0", true);
 
 		if (axis === "vertical") {
-			this.css("padding-top", (gap / 2) + "px", true);
-			this.css("padding-bottom", (gap / 2) + "px", true);
+			this.css("padding-top", PAGINATED_VERTICAL_PADDING + "px", true);
+			this.css("padding-bottom", PAGINATED_VERTICAL_PADDING + "px", true);
 			this.css("padding-left", "20px");
 			this.css("padding-right", "20px");
 			this.css(COLUMN_AXIS, "vertical");
 		} else {
-			this.css("padding-top", "20px");
-			this.css("padding-bottom", "20px");
+			this.css("padding-top", PAGINATED_VERTICAL_PADDING + "px", true);
+			this.css("padding-bottom", PAGINATED_VERTICAL_PADDING + "px", true);
 			this.css("padding-left", (gap / 2) + "px", true);
 			this.css("padding-right", (gap / 2) + "px", true);
 			this.css(COLUMN_AXIS, "horizontal");
