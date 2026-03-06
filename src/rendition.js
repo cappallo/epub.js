@@ -418,6 +418,8 @@ class Rendition {
 	afterDisplayed(view){
 
 		view.on(EVENTS.VIEWS.MARK_CLICKED, (cfiRange, data) => this.triggerMarkEvent(cfiRange, data, view.contents));
+		view.on(EVENTS.VIEWS.MARK_TOUCH_START, (cfiRange, data) => this.triggerMarkTouchStartEvent(cfiRange, data, view.contents));
+		view.on(EVENTS.VIEWS.MARK_TOUCH_END, (cfiRange, data) => this.triggerMarkTouchEndEvent(cfiRange, data, view.contents));
 
 		this.hooks.render.trigger(view, this)
 			.then(() => {
@@ -921,6 +923,14 @@ class Rendition {
 		 * @memberof Rendition
 		 */
 		this.emit(EVENTS.RENDITION.MARK_CLICKED, cfiRange, data, contents);
+	}
+
+	triggerMarkTouchStartEvent(cfiRange, data, contents){
+		this.emit(EVENTS.RENDITION.MARK_TOUCH_START, cfiRange, data, contents);
+	}
+
+	triggerMarkTouchEndEvent(cfiRange, data, contents){
+		this.emit(EVENTS.RENDITION.MARK_TOUCH_END, cfiRange, data, contents);
 	}
 
 	/**

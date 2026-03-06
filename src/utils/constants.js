@@ -59,7 +59,9 @@ export const EVENTS = createEventsWithConditionalDebug({
     DISPLAYED : "displayed",
     SHOWN : "shown",
     HIDDEN : "hidden",
-    MARK_CLICKED : "markClicked"
+    MARK_CLICKED : "markClicked",
+    MARK_TOUCH_START : "markTouchStart",
+    MARK_TOUCH_END : "markTouchEnd"
   },
   RENDITION : {
     STARTED : "started",
@@ -73,6 +75,8 @@ export const EVENTS = createEventsWithConditionalDebug({
     LOCATION_CHANGED : "locationChanged",
     RELOCATED : "relocated",
     MARK_CLICKED : "markClicked",
+    MARK_TOUCH_START : "markTouchStart",
+    MARK_TOUCH_END : "markTouchEnd",
     SELECTED : "selected",
     LAYOUT: "layout",
     LINK_CLICKED : "linkClicked"

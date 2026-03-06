@@ -696,6 +696,12 @@ class IframeView {
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
+		let touchStartEmitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_TOUCH_START, cfiRange, data);
+		};
+		let touchEndEmitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_TOUCH_END, cfiRange, data);
+		};
 
 		data["epubcfi"] = cfiRange;
 
@@ -718,15 +724,15 @@ class IframeView {
 			});
 		}
 
-		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
+		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, touchStartEmitter, touchEndEmitter, cb] };
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		h.element.addEventListener("touchstart", touchStartEmitter);
+		h.element.addEventListener("touchend", touchEndEmitter);
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
 		}
 		return h;
 	}
@@ -740,6 +746,12 @@ class IframeView {
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
+		let touchStartEmitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_TOUCH_START, cfiRange, data);
+		};
+		let touchEndEmitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_TOUCH_END, cfiRange, data);
+		};
 
 		data["epubcfi"] = cfiRange;
 
@@ -750,15 +762,15 @@ class IframeView {
 		let m = new Underline(range, className, data, attributes);
 		let h = this.pane.addMark(m);
 
-		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, cb] };
+		this.underlines[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, touchStartEmitter, touchEndEmitter, cb] };
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
-		h.element.addEventListener("touchstart", emitter);
+		h.element.addEventListener("touchstart", touchStartEmitter);
+		h.element.addEventListener("touchend", touchEndEmitter);
 
 		if (cb) {
 			h.element.addEventListener("click", cb);
-			h.element.addEventListener("touchstart", cb);
 		}
 		return h;
 	}
@@ -783,6 +795,12 @@ class IframeView {
 		let emitter = (e) => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
+		let touchStartEmitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_TOUCH_START, cfiRange, data);
+		};
+		let touchEndEmitter = () => {
+			this.emit(EVENTS.VIEWS.MARK_TOUCH_END, cfiRange, data);
+		};
 
 		if (range.collapsed && container.nodeType === 1) {
 			range = new Range();
@@ -806,17 +824,17 @@ class IframeView {
 
 		if (cb) {
 			mark.addEventListener("click", cb);
-			mark.addEventListener("touchstart", cb);
 		}
 
 		mark.addEventListener("click", emitter);
-		mark.addEventListener("touchstart", emitter);
+		mark.addEventListener("touchstart", touchStartEmitter);
+		mark.addEventListener("touchend", touchEndEmitter);
 
 		this.placeMark(mark, range);
 
 		this.element.appendChild(mark);
 
-		this.marks[cfiRange] = { "element": mark, "range": range, "listeners": [emitter, cb] };
+		this.marks[cfiRange] = { "element": mark, "range": range, "listeners": [emitter, touchStartEmitter, touchEndEmitter, cb] };
 
 		return parent;
 	}
@@ -867,6 +885,7 @@ class IframeView {
 				if (l) {
 					item.element.removeEventListener("click", l);
 					item.element.removeEventListener("touchstart", l);
+					item.element.removeEventListener("touchend", l);
 				};
 			});
 			delete this.highlights[cfiRange];
@@ -888,6 +907,7 @@ class IframeView {
 				if (l) {
 					item.element.removeEventListener("click", l);
 					item.element.removeEventListener("touchstart", l);
+					item.element.removeEventListener("touchend", l);
 				};
 			});
 			delete this.underlines[cfiRange];
@@ -903,6 +923,7 @@ class IframeView {
 				if (l) {
 					item.element.removeEventListener("click", l);
 					item.element.removeEventListener("touchstart", l);
+					item.element.removeEventListener("touchend", l);
 				};
 			});
 			delete this.marks[cfiRange];
