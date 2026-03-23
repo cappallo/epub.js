@@ -663,6 +663,30 @@ class EpubCFI {
 
 	}
 
+	isZeroLengthIgnoredNode(node, ignoreClass) {
+		return !!(
+			ignoreClass &&
+			node &&
+			node.nodeType === ELEMENT_NODE &&
+			node.classList &&
+			node.classList.contains(ignoreClass) &&
+			node.getAttribute &&
+			node.getAttribute("data-inline-note-marker") === "true"
+		);
+	}
+
+	ignoredNodeTextLength(node, ignoreClass) {
+		if (!node) {
+			return 0;
+		}
+
+		if (this.isZeroLengthIgnoredNode(node, ignoreClass)) {
+			return 0;
+		}
+
+		return node.textContent ? node.textContent.length : 0;
+	}
+
 	/**
 	 * Patches the offset for ignored elements
 	 * @param {Node} anchor - The anchor node
@@ -692,7 +716,7 @@ class EpubCFI {
 			if(curr.previousSibling.nodeType === ELEMENT_NODE) {
 				// Originally a text node, so join
 				if(curr.previousSibling.classList.contains(ignoreClass)){
-					totalOffset += curr.previousSibling.textContent.length;
+					totalOffset += this.ignoredNodeTextLength(curr.previousSibling, ignoreClass);
 				} else {
 					break; // Normal node, don't join
 				}
@@ -718,6 +742,10 @@ class EpubCFI {
 		for (i = 0; i < len; i++) {
 
 			currNodeType = children[i].nodeType;
+
+			if (this.isZeroLengthIgnoredNode(children[i], ignoreClass)) {
+				continue;
+			}
 
 			// Check if needs ignoring
 			if (currNodeType === ELEMENT_NODE &&
@@ -839,6 +867,13 @@ class EpubCFI {
 			filter(function (node) {
 				if (node.nodeType === TEXT_NODE) {
 					return true;
+				} else if (
+					ignoreClass &&
+					node.nodeType === ELEMENT_NODE &&
+					node.classList.contains(ignoreClass) &&
+					node.getAttribute("data-inline-note-marker") === "true"
+				) {
+					return false;
 				} else if (ignoreClass && node.classList.contains(ignoreClass)) {
 					return true;
 				}
@@ -918,7 +953,10 @@ class EpubCFI {
 
 			if(map[childIndex] === lastStepIndex) {
 				child = children[childIndex];
-				len = child.textContent.length;
+				if (this.isZeroLengthIgnoredNode(child, ignoreClass)) {
+					continue;
+				}
+				len = this.ignoredNodeTextLength(child, ignoreClass);
 				if(offset > len) {
 					offset = offset - len;
 				} else {
