@@ -407,7 +407,11 @@ class Annotation {
 
 		if (view) {
 			if (type === "highlight") {
-				result = view.unhighlight(cfiRange);
+				if (isPreview && this.data && this.data.id) {
+					result = view.unhighlight(cfiRange, this.data.id);
+				} else {
+					result = view.unhighlight(cfiRange);
+				}
 			} else if (type === "underline") {
 				result = view.ununderline(cfiRange);
 			} else if (type === "mark") {

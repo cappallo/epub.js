@@ -88,6 +88,7 @@ class IframeView {
 
 		this.pane = undefined;
 		this.highlights = {};
+		this.previewHighlights = {};
 		this.underlines = {};
 		this.marks = {};
 
@@ -656,8 +657,13 @@ class IframeView {
 			}
 			return;
 		}
-		if (cfiRange in this.highlights) {
+		const isPreview = isCustomSelectionPreviewData(data);
+		const previewKey = isPreview && data && data.id ? data.id : null;
+		if (!isPreview && cfiRange in this.highlights) {
 			this.unhighlight(cfiRange);
+		}
+		if (isPreview && previewKey && previewKey in this.previewHighlights) {
+			this.unhighlight(cfiRange, previewKey);
 		}
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		const { range, rectCount: resolvedRectCount, resolvedWith } = resolveHighlightRange(
@@ -665,7 +671,6 @@ class IframeView {
 			cfiRange,
 			this.settings.ignoreClass
 		);
-		const isPreview = isCustomSelectionPreviewData(data);
 		if (isPreview) {
 			let rangeTextLen = 0;
 			let rangeRectCount = resolvedRectCount;
@@ -735,7 +740,12 @@ class IframeView {
 			});
 		}
 
-		this.highlights[cfiRange] = { "mark": h, "element": h.element, "listeners": [emitter, touchStartEmitter, touchEndEmitter, cb] };
+		const highlightRecord = { "mark": h, "element": h.element, "listeners": [emitter, touchStartEmitter, touchEndEmitter, cb], "cfiRange": cfiRange };
+		if (isPreview && previewKey) {
+			this.previewHighlights[previewKey] = highlightRecord;
+		} else {
+			this.highlights[cfiRange] = highlightRecord;
+		}
 
 		h.element.setAttribute("ref", className);
 		h.element.addEventListener("click", emitter);
@@ -761,6 +771,13 @@ class IframeView {
 			const item = this.highlights[cfiRange];
 			if (matchesField(item && item.element)) {
 				this.unhighlight(cfiRange);
+			}
+		});
+
+		Object.keys(this.previewHighlights).forEach((previewId) => {
+			const item = this.previewHighlights[previewId];
+			if (matchesField(item && item.element)) {
+				this.unhighlight(item && item.cfiRange, previewId);
 			}
 		});
 
@@ -935,8 +952,34 @@ class IframeView {
 		element.style.left = `${right}px`;
 	}
 
-	unhighlight(cfiRange) {
+	unhighlight(cfiRange, previewId) {
 		let item;
+		if (previewId && previewId in this.previewHighlights) {
+			item = this.previewHighlights[previewId];
+			const isPreview = true;
+			previewDebug("unhighlight:start", {
+				cfiRange: item && item.cfiRange,
+				viewIndex: this.index,
+				id: previewId
+			});
+
+			this.pane.removeMark(item.mark);
+			item.listeners.forEach((l) => {
+				if (l) {
+					item.element.removeEventListener("click", l);
+					item.element.removeEventListener("touchstart", l);
+					item.element.removeEventListener("touchend", l);
+				};
+			});
+			delete this.previewHighlights[previewId];
+			if (isPreview) {
+				previewDebug("unhighlight:end", {
+					cfiRange: item && item.cfiRange,
+					viewIndex: this.index
+				});
+			}
+			return;
+		}
 		if (cfiRange in this.highlights) {
 			item = this.highlights[cfiRange];
 			const isPreview = isCustomSelectionPreviewData(item && item.element && item.element.dataset);
@@ -1002,6 +1045,11 @@ class IframeView {
 
 		for (let cfiRange in this.highlights) {
 			this.unhighlight(cfiRange);
+		}
+
+		for (let previewId in this.previewHighlights) {
+			const item = this.previewHighlights[previewId];
+			this.unhighlight(item && item.cfiRange, previewId);
 		}
 
 		for (let cfiRange in this.underlines) {
