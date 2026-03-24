@@ -696,10 +696,18 @@ class IframeView {
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
-		let touchStartEmitter = () => {
+		let touchStartEmitter = (e) => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			this.emit(EVENTS.VIEWS.MARK_TOUCH_START, cfiRange, data);
 		};
-		let touchEndEmitter = () => {
+		let touchEndEmitter = (e) => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			this.emit(EVENTS.VIEWS.MARK_TOUCH_END, cfiRange, data);
 		};
 
@@ -746,10 +754,18 @@ class IframeView {
 		let emitter = () => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
-		let touchStartEmitter = () => {
+		let touchStartEmitter = (e) => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			this.emit(EVENTS.VIEWS.MARK_TOUCH_START, cfiRange, data);
 		};
-		let touchEndEmitter = () => {
+		let touchEndEmitter = (e) => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			this.emit(EVENTS.VIEWS.MARK_TOUCH_END, cfiRange, data);
 		};
 
@@ -795,10 +811,18 @@ class IframeView {
 		let emitter = (e) => {
 			this.emit(EVENTS.VIEWS.MARK_CLICKED, cfiRange, data);
 		};
-		let touchStartEmitter = () => {
+		let touchStartEmitter = (e) => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			this.emit(EVENTS.VIEWS.MARK_TOUCH_START, cfiRange, data);
 		};
-		let touchEndEmitter = () => {
+		let touchEndEmitter = (e) => {
+			if (e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			this.emit(EVENTS.VIEWS.MARK_TOUCH_END, cfiRange, data);
 		};
 
