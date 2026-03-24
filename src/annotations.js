@@ -133,6 +133,7 @@ class Annotations {
 		const isPreviewRemoval = fieldName === "id" && typeof fieldValue === "string" &&
 			fieldValue.indexOf("__custom_selection_preview_") === 0;
 		let removedCount = 0;
+		let views = this.rendition.views();
 		if (isPreviewRemoval) {
 			previewDebug("removeByData:start", {
 				fieldName,
@@ -144,7 +145,6 @@ class Annotations {
 			const annotation = this._annotations[hash];
 			if (annotation.data && annotation.data[fieldName] === fieldValue) {
 				removedCount += 1;
-				let views = this.rendition.views();
 				views.forEach(view => {
 					this._removeFromAnnotationBySectionIndex(annotation.sectionIndex, hash);
 					if (annotation.sectionIndex === view.index) {
@@ -159,6 +159,11 @@ class Annotations {
 					}
 				});
 				delete this._annotations[hash];
+			}
+		});
+		views.forEach((view) => {
+			if (view && typeof view.removeAnnotationsByData === "function") {
+				view.removeAnnotationsByData(fieldName, fieldValue);
 			}
 		});
 		if (isPreviewRemoval) {

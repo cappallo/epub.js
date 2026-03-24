@@ -656,6 +656,9 @@ class IframeView {
 			}
 			return;
 		}
+		if (cfiRange in this.highlights) {
+			this.unhighlight(cfiRange);
+		}
 		const attributes = Object.assign({"fill": "yellow", "fill-opacity": "0.3", "mix-blend-mode": "multiply"}, styles);
 		const { range, rectCount: resolvedRectCount, resolvedWith } = resolveHighlightRange(
 			this.contents,
@@ -743,6 +746,47 @@ class IframeView {
 			h.element.addEventListener("click", cb);
 		}
 		return h;
+	}
+
+	removeAnnotationsByData(fieldName, fieldValue) {
+		if (fieldValue === undefined || fieldValue === null) {
+			return;
+		}
+		const expectedValue = String(fieldValue);
+		const matchesField = (element) => {
+			return !!(element && element.dataset && element.dataset[fieldName] === expectedValue);
+		};
+
+		Object.keys(this.highlights).forEach((cfiRange) => {
+			const item = this.highlights[cfiRange];
+			if (matchesField(item && item.element)) {
+				this.unhighlight(cfiRange);
+			}
+		});
+
+		Object.keys(this.underlines).forEach((cfiRange) => {
+			const item = this.underlines[cfiRange];
+			if (matchesField(item && item.element)) {
+				this.ununderline(cfiRange);
+			}
+		});
+
+		Object.keys(this.marks).forEach((cfiRange) => {
+			const item = this.marks[cfiRange];
+			if (matchesField(item && item.element)) {
+				this.unmark(cfiRange);
+			}
+		});
+
+		if (this.pane && Array.isArray(this.pane.marks)) {
+			this.pane.marks.slice().forEach((mark) => {
+				if (matchesField(mark && mark.element)) {
+					try {
+						this.pane.removeMark(mark);
+					} catch (_error) {}
+				}
+			});
+		}
 	}
 
 	underline(cfiRange, data={}, cb, className = "epubjs-ul", styles = {}) {
