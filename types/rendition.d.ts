@@ -23,6 +23,7 @@ export interface RenditionOptions {
   script?: string,
   infinite?: boolean,
   overflow?: string,
+  afterScrolledTimeout?: number,
   snap?: boolean | object,
   defaultDirection?: string,
   allowScriptedContent?: boolean,

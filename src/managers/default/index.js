@@ -27,6 +27,7 @@ class DefaultViewManager {
 			flow: "scrolled",
 			ignoreClass: "",
 			fullsize: undefined,
+			afterScrolledTimeout: 20,
 			allowScriptedContent: false,
 			allowPopups: false
 		});
@@ -915,7 +916,7 @@ class DefaultViewManager {
 					top: this.scrollTop,
 					left: this.scrollLeft
 				});
-			}.bind(this), 20);
+			}.bind(this), this.settings.afterScrolledTimeout);
 
 
 
