@@ -478,6 +478,10 @@ class Rendition {
 			height: size.height
 		}, epubcfi);
 
+		if (this._suppressAutoDisplay) {
+      return;
+    }
+
 		if (this.location && this.location.start) {
 			this.display(epubcfi || this.location.start.cfi);
 		}

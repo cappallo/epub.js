@@ -1064,31 +1064,47 @@ class IframeView {
 			revokeBlobUrl(this.blobUrl);
 		}
 
-		if(this.displayed){
-			this.displayed = false;
+		if (this.displayed) {
+      this.displayed = false;
 
-			this.removeListeners();
-			this.contents.destroy();
+      this.removeListeners();
+      this.contents.destroy();
 
-			this.stopExpanding = true;
-			this.element.removeChild(this.iframe);
+      this.stopExpanding = true;
+      this.element.removeChild(this.iframe);
 
-			if (this.pane) {
-				this.pane.element.remove();
-				this.pane = undefined;
-			}
+      if (this.pane) {
+        this.pane.element.remove();
+        this.pane = undefined;
+      }
 
-			this.iframe = undefined;
-			this.contents = undefined;
+      this.iframe = undefined;
+      this.contents = undefined;
 
-			this._textWidth = null;
-			this._textHeight = null;
-			this._width = null;
-			this._height = null;
-		}
+      this._textWidth = null;
+      this._textHeight = null;
+      this._width = null;
+      this._height = null;
+    } else {
+      // Clean up views that were still loading (displayed === false)
+      // to prevent orphaned iframes and DOM elements.
+      this.stopExpanding = true;
+      if (this.iframe) {
+        this.iframe.onload = null;
+        if (this.element && this.iframe.parentNode === this.element) {
+          this.element.removeChild(this.iframe);
+        }
+        this.iframe = undefined;
+      }
+      if (this.contents) {
+        this.contents.destroy();
+        this.contents = undefined;
+      }
+    }
 
-		// this.element.style.height = "0px";
-		// this.element.style.width = "0px";
+		if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+    }
 	}
 }
 
