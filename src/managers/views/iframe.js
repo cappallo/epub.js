@@ -1042,29 +1042,28 @@ class IframeView {
 	}
 
 	destroy() {
+    for (let cfiRange in this.highlights) {
+      this.unhighlight(cfiRange);
+    }
 
-		for (let cfiRange in this.highlights) {
-			this.unhighlight(cfiRange);
-		}
+    for (let previewId in this.previewHighlights) {
+      const item = this.previewHighlights[previewId];
+      this.unhighlight(item && item.cfiRange, previewId);
+    }
 
-		for (let previewId in this.previewHighlights) {
-			const item = this.previewHighlights[previewId];
-			this.unhighlight(item && item.cfiRange, previewId);
-		}
+    for (let cfiRange in this.underlines) {
+      this.ununderline(cfiRange);
+    }
 
-		for (let cfiRange in this.underlines) {
-			this.ununderline(cfiRange);
-		}
+    for (let cfiRange in this.marks) {
+      this.unmark(cfiRange);
+    }
 
-		for (let cfiRange in this.marks) {
-			this.unmark(cfiRange);
-		}
+    if (this.blobUrl) {
+      revokeBlobUrl(this.blobUrl);
+    }
 
-		if (this.blobUrl) {
-			revokeBlobUrl(this.blobUrl);
-		}
-
-		if (this.displayed) {
+    if (this.displayed) {
       this.displayed = false;
 
       this.removeListeners();
@@ -1102,10 +1101,9 @@ class IframeView {
       }
     }
 
-		if (this.element && this.element.parentNode) {
-      this.element.parentNode.removeChild(this.element);
-    }
-	}
+    // this.element.style.height = "0px";
+    // this.element.style.width = "0px";
+  }
 }
 
 EventEmitter(IframeView.prototype);
