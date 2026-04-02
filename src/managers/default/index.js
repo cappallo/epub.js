@@ -637,7 +637,17 @@ class DefaultViewManager {
 								this.scrollTo((this.container.scrollWidth * -1) + this.layout.delta, 0, true);
 							}
 						} else {
-							this.scrollTo(this.container.scrollWidth - this.layout.delta, 0, true);
+							// After prepending a section, container.scrollWidth can be
+							// one page off until the stage settles, which can strand
+							// prev() on a blank trailing column or skip past the real
+							// last page. Use the actual rendered view width instead.
+							let view = this.views.first();
+							let viewWidth =
+								view && typeof view.width === "function"
+									? view.width()
+									: this.container.scrollWidth;
+							let lastPageOffset = Math.max(0, viewWidth - this.layout.delta);
+							this.scrollTo(lastPageOffset, 0, true);
 						}
 					}
 					this.views.show();
